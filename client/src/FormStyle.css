@@ -1,0 +1,19 @@
+input{
+    border-radius: 25px;
+    border-style: solid;
+    padding-left: 10px;
+    height: 30px;
+    border-color: blueviolet;
+}
+
+button{
+    border-radius: 25px;
+    width: 20vw;
+    height: 30px;
+    border-style: solid;
+    border-color: blueviolet;
+}
+
+.chatboard{
+    height: 85vh;
+}
