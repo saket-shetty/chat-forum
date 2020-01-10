@@ -1,3 +1,6 @@
 [submodule "client"]
 	path = client
 	url = https://git.heroku.com/chatforum.git
+[submodule "chats"]
+	path = chats
+	url = https://git.heroku.com/chatforum.git
