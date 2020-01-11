@@ -9,6 +9,7 @@ class App extends React.Component {
     super(props);
     this.state = {
       value: [],
+      allData: [],
       name: "",
       message: "",
     }
@@ -18,8 +19,22 @@ class App extends React.Component {
     this.setState({ [event.target.name]: event.target.value })
   }
 
+  getData = () => {
+    console.log("gatData");
+    axios.get('https://chatforum-server.herokuapp.com/api/allData')
+      .then(res => {
+        var data = res.data;
+        this.setState({ allData: data['data']});
+        this.setState({ allData: this.state.allData.reverse() });
+
+        var obj = document.getElementById("cboard");
+        obj.scrollTop = obj.scrollHeight;
+      })
+  }
+
   componentDidMount() {
-    const socket = socketIOClient("wss://chatforum-server.herokuapp.com/");
+    this.getData();
+    const socket = socketIOClient("wss://chatforum-server.herokuapp.com");
     socket.on('message', (msg) => {
       console.log(msg);
       this.setState({ value: this.state.value.concat(msg) });
@@ -63,6 +78,13 @@ class App extends React.Component {
         </div>
 
         <div id="cboard" className="chatboard" style={{ overflow: "auto", color: "green"}}>
+
+          {this.state.allData.map(newid =>(
+              <div key={newid._id} style={{ fontSize: "20px" }}>
+                {newid.name}>> {newid.message}
+              </div>
+          ))}
+
           {this.state.value.map(ids => (
             <div key={ids._id} style={{ fontSize: "20px" }}>
               {ids.name}>> {ids.message}

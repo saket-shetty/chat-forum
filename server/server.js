@@ -33,20 +33,10 @@ io.on('connection', socket => {
       socket.emit('message', msg['fullDocument']);
     });
   });
-
-
-  socket.emit('pressed', 'this value coming from nodejs finally ooh yeah');
-
-  socket.on('value node', (msg)=>{
-    console.log(msg);
-  })
-
-  socket.on('disconnect', () => {
-    console.log('user disconnected')
-  })
 })
 
 router.post('/postData', (req, res)=>{
+  console.log("postData");
   res.end(JSON.stringify(req.body))
   
   mongoClient.connect(url, {useUnifiedTopology: true, useNewUrlParser: true}, function(err, client){
@@ -60,8 +50,16 @@ router.post('/postData', (req, res)=>{
   console.log(req.body.name, req.body.message);
 })
 
-app.use('/api', router);
+router.get('/allData', (req, res)=>{
+  mongoClient.connect(url, {useUnifiedTopology: true, useNewUrlParser: true}, function(err, client){
+    const db = client.db("chatapp");
+    db.collection('chat').find().sort({"_id": -1}).limit(20).toArray(function (error, result) {
+      if(error) throw error;
+      return res.json({success: true, data: result});
+    });
+  })
+})
 
-// app.listen(port, () => console.log(`LISTENING ON PORT `));
+app.use('/api', router);
 
 server.listen(port, () => console.log(`Listening on port ${port}`))
