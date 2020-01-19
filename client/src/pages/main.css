@@ -1,0 +1,12 @@
+.maindiv li{
+    display: inline-block;
+    padding: 5px;
+}
+
+.maindiv div{
+    border-radius: 25px;
+}
+
+p{
+    color: #ffffff;
+}
