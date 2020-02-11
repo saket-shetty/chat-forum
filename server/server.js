@@ -26,7 +26,7 @@ io.on('connection', socket => {
   mongoClient.connect(url, { useUnifiedTopology: true, useNewUrlParser: true }, function (err, client) {
     const db = client.db("chatapp");
     db.collection('chat').watch().on('change', msg => {
-      socket.emit('chat', msg['fullDocument']);
+      socket.emit('message', msg['fullDocument']);
     });
 
     db.collection('createroom').watch().on('change', msg => {

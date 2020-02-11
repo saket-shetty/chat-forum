@@ -8,18 +8,18 @@ input{
 
 button{
     border-radius: 25px;
-    width: 20vw;
+    width: 10vw;
     height: 30px;
     border-style: solid;
     border-color: blueviolet;
 }
 
 .chatboard{
-    height: 80vh;
+    height: 81.5vh;
 }
 
 @media screen and (max-width: 800px) {
     .chatboard{
-        height: 70vh;
+        height: 81vh;
     }
 }

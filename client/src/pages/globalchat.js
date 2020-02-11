@@ -12,6 +12,7 @@ class globalchat extends React.Component {
       allData: [],
       name: "",
       message: "",
+      backgroundcolor: "#ffffff",
     }
   }
 
@@ -24,7 +25,7 @@ class globalchat extends React.Component {
     axios.get('https://chatforum-server.herokuapp.com/api/allData')
       .then(res => {
         var data = res.data;
-        this.setState({ allData: data['data']});
+        this.setState({ allData: data['data'] });
         this.setState({ allData: this.state.allData.reverse() });
 
         var obj = document.getElementById("cboard");
@@ -68,7 +69,13 @@ class globalchat extends React.Component {
 
   render() {
     return (
-      <div>
+      <div style={{ backgroundColor: this.state.backgroundcolor}}>
+
+        <label className="switch">
+          <input type="checkbox" style={{ backgroundColor: "#2e2e2e" }} onClick={() => this.DarkMode()}></input>
+          <span className="slider round"></span>
+        </label>
+
         <div style={{ height: "5vh" }}>
           <center>
             <h2>
@@ -77,12 +84,12 @@ class globalchat extends React.Component {
           </center>
         </div>
 
-        <div id="cboard" className="chatboard" style={{ overflow: "auto", color: "green"}}>
+        <div id="cboard" className="chatboard" style={{ overflow: "auto", color: "green" }}>
 
-          {this.state.allData.map(newid =>(
-              <div key={newid._id} style={{ fontSize: "20px" }}>
-                {newid.name}>> {newid.message}
-              </div>
+          {this.state.allData.map(newid => (
+            <div key={newid._id} style={{ fontSize: "20px" }}>
+              {newid.name}>> {newid.message}
+            </div>
           ))}
 
           {this.state.value.map(ids => (
@@ -92,9 +99,9 @@ class globalchat extends React.Component {
           ))}
         </div>
 
-        <div style={{ position: "fixed", bottom: "0", paddingBottom: "10px" }} onSubmit={() => this.submit()}>
+        <div style={{ position: "fixed", bottom: "0", backgroundColor:this.state.backgroundcolor, width:"100%" }} onSubmit={() => this.submit()}>
           <input style={{ width: "15vw" }} autoFocus="true" type="text" placeholder="name" name="name" value={this.state.name} onChange={this.handleChange} />
-          <input style={{ width: "55vw" }} autoFocus="true" onKeyDown={this._handleKeyDown} type="text" placeholder="message" name="message" value={this.state.message} onChange={this.handleChange} />
+          <input style={{ width: "60vw" }} autoFocus="true" onKeyDown={this._handleKeyDown} type="text" placeholder="message" name="message" value={this.state.message} onChange={this.handleChange} />
           <button type="submit" onClick={() => this.submit()}>
             Submit
           </button>
@@ -102,6 +109,10 @@ class globalchat extends React.Component {
 
       </div>
     );
+  }
+
+  DarkMode = () => {
+    this.setState({ backgroundcolor: "#2e2e2e" });
   }
 }
 

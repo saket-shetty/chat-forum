@@ -2,6 +2,7 @@ import React from 'react';
 import socketIOClient from 'socket.io-client';
 import axios from 'axios';
 import '../FormStyle.css';
+import './main.css';
 
 
 class createroom extends React.Component {
@@ -14,6 +15,7 @@ class createroom extends React.Component {
             allData: [],
             name: "",
             message: "",
+            backgroundcolor: "#ffffff",
         }
     }
 
@@ -32,13 +34,13 @@ class createroom extends React.Component {
         this.socketdataget();
     }
 
-    socketdataget(){
+    socketdataget() {
         console.log(String(this.state.roomid))
         const socket = socketIOClient("wss://chatforum-server.herokuapp.com");
-            socket.on(String(this.state.roomid), (msg) => {
-                this.setState({ value: this.state.value.concat(msg) });
-                var obj = document.getElementById("cboard");
-                obj.scrollTop = obj.scrollHeight;
+        socket.on(String(this.state.roomid), (msg) => {
+            this.setState({ value: this.state.value.concat(msg) });
+            var obj = document.getElementById("cboard");
+            obj.scrollTop = obj.scrollHeight;
         });
     }
 
@@ -68,34 +70,38 @@ class createroom extends React.Component {
 
     render() {
         return (
-                <div>
-                    {this.state.submitRoomid.length < 10
-                        ? (
-                            <center>
+            <div>
+                {this.state.submitRoomid.length < 10
+                    ? (
+                        <center>
                             <div>
 
-                                <p style={{color: "#2e2e2e"}}>Room id should be more than 9 character</p>
+                                <p style={{ color: "#2e2e2e  " }}>Room id should be more than 9 character</p>
                                 <input type="text" placeholder="Enter Room id" value={this.state.roomid} onChange={this.roomidset} />
-                                <button onClick={this.submitRoom} style={{width: "100px"}}> submit </button>
+                                <button onClick={this.submitRoom} style={{ width: "100px" }}> submit </button>
                             </div>
-                            </center>
-                        )
-                        :
-                        (
+                        </center>
+                    )
+                    :
+                    (
+                        <div style={{ backgroundColor: this.state.backgroundcolor }}>
+                            Room id: {this.state.submitRoomid}
+                            <label className="switch">
+                                <input type="checkbox" style={{ backgroundColor: "#2e2e2e" }} onClick={() => this.DarkMode()}></input>
+                                <span className="slider round"></span>
+                            </label>
                             <div>
-                                Room id: {this.state.submitRoomid}
-                                <div>
-                                    <div style={{ height: "5vh" }}>
+                                <div style={{ height: "5vh" }}>
                                     <center>
                                         <h2>
                                             Private Room
                                         </h2>
                                     </center>
-                                    </div>
+                                </div>
 
-                                    <div id="cboard" className="chatboard" style={{ overflow: "auto", color: "green"}}>
+                                <div id="cboard" className="chatboard" style={{ overflow: "auto", color: "green" }}>
 
-                                    {this.state.allData.map(newid =>(
+                                    {this.state.allData.map(newid => (
                                         <div key={newid._id} style={{ fontSize: "20px" }}>
                                             {newid.name}>> {newid.message}
                                         </div>
@@ -103,25 +109,29 @@ class createroom extends React.Component {
 
                                     {this.state.value.map(ids => (
                                         <div key={ids._id} style={{ fontSize: "20px" }}>
-                                        {ids.name}>> {ids.message}
+                                            {ids.name}>> {ids.message}
                                         </div>
                                     ))}
-                                    </div>
+                                </div>
 
-                                    <div style={{ position: "fixed", bottom: "0", paddingBottom: "10px" }} onSubmit={() => this.submit()}>
+                                <div style={{ position: "fixed", bottom: "0", width: "100%", backgroundColor: this.state.backgroundcolor }} onSubmit={() => this.submit()}>
                                     <input style={{ width: "15vw" }} autoFocus="true" type="text" placeholder="name" name="name" value={this.state.name} onChange={this.handleChange} />
                                     <input style={{ width: "55vw" }} autoFocus="true" onKeyDown={this._handleKeyDown} type="text" placeholder="message" name="message" value={this.state.message} onChange={this.handleChange} />
                                     <button type="submit" onClick={() => this.submit()}>
                                         Submit
                                     </button>
-                                    </div>
+                                </div>
 
-                                </div> 
                             </div>
-                        )
-                    }
-                </div>
+                        </div>
+                    )
+                }
+            </div>
         );
+    }
+
+    DarkMode = () =>{
+        this.setState({backgroundcolor:"#2e2e2e"});
     }
 }
 
