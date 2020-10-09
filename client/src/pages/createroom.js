@@ -1,138 +1,159 @@
 import React from 'react';
-import socketIOClient from 'socket.io-client';
 import axios from 'axios';
 import '../FormStyle.css';
-import './main.css';
+import SockJsClient from 'react-stomp';
 
+let url = "https://server-chatforum.herokuapp.com/api/private/"
 
 class createroom extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            roomid: "",
-            submitRoomid: "",
-            value: [],
-            allData: [],
-            name: "",
-            message: "",
-            backgroundcolor: "#ffffff",
-        }
+  constructor(props) {
+    super(props);
+    this.state = {
+      roomid: "",
+      submitRoomid: "",
+      value: [],
+      allData: [],
+      name: "",
+      message: "",
+      backgroundcolor: "#ffffff",
     }
+  }
 
-    roomidset = (event) => {
-        this.setState({ roomid: event.target.value })
-    }
+  roomidset = (event) => {
+    this.setState({ roomid: event.target.value })
+  }
 
-    handleChange = (event) => {
-        this.setState({ [event.target.name]: event.target.value })
-    }
+  handleChange = (event) => {
+    this.setState({ [event.target.name]: event.target.value })
+  }
 
-    submitRoom = () => {
+  submitRoom = () => {
+    this.setState({
+      submitRoomid: this.state.roomid
+    })
+    this.getData()
+  }
+
+  getData = () => {
+    axios.get(url)
+      .then(res => {
+        var data = res.data;
         this.setState({
-            submitRoomid: this.state.roomid
+          allData: data['data'][this.state.roomid]
         })
-        this.socketdataget();
+        var obj = document.getElementById("cboard");
+        obj.scrollTop = obj.scrollHeight;
+      })
+  }
+
+  submit = () => {
+    this.clientRef.sendMessage('/app/user-private', JSON.stringify({
+      roomid: this.state.roomid,
+      name: this.state.name === "" ? "anon" : this.state.name,
+      message: this.state.message
+    }));
+
+    var path = url + this.state.roomid + "/";
+    axios.post(path, {
+      name: this.state.name === "" ? "anon" : this.state.name,
+      message: this.state.message
+    })
+    this.setState({ message: "" });
+  }
+
+  _handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      this.submit();
     }
+  }
 
-    socketdataget() {
-        console.log(String(this.state.roomid))
-        const socket = socketIOClient("wss://chatforum-server.herokuapp.com");
-        socket.on(String(this.state.roomid), (msg) => {
-            this.setState({ value: this.state.value.concat(msg) });
-            var obj = document.getElementById("cboard");
-            obj.scrollTop = obj.scrollHeight;
-        });
-    }
-
-    submit = () => {
-        if (this.state.name === "") {
-            const response = axios.post('https://chatforum-server.herokuapp.com/api/postCreateData', {
-                name: "anon",
-                message: this.state.message,
-                roomid: this.state.submitRoomid,
-            })
-        }
-        else {
-            const response = axios.post('https://chatforum-server.herokuapp.com/api/postCreateData', {
-                name: this.state.name,
-                message: this.state.message,
-                roomid: this.state.submitRoomid,
-            })
-        }
-        this.setState({ message: "" });
-    }
-
-    _handleKeyDown = (e) => {
-        if (e.key === 'Enter') {
-            this.submit();
-        }
-    }
-
-    render() {
-        return (
-            <div>
-                {this.state.submitRoomid.length < 10
-                    ? (
-                        <center>
-                            <div>
-
-                                <p style={{ color: "#2e2e2e  " }}>Room id should be more than 9 character</p>
-                                <input type="text" placeholder="Enter Room id" value={this.state.roomid} onChange={this.roomidset} />
-                                <button onClick={this.submitRoom} style={{ width: "100px" }}> submit </button>
-                            </div>
-                        </center>
-                    )
-                    :
-                    (
-                        <div style={{ backgroundColor: this.state.backgroundcolor }}>
-                            Room id: {this.state.submitRoomid}
-                            <label className="switch">
-                                <input type="checkbox" style={{ backgroundColor: "#2e2e2e" }} onClick={() => this.DarkMode()}></input>
-                                <span className="slider round"></span>
-                            </label>
-                            <div>
-                                <div style={{ height: "5vh" }}>
-                                    <center>
-                                        <h2>
-                                            Private Room
+  render() {
+    return (
+      <div>
+        {this.state.submitRoomid.length < 10
+          ? (
+            <center>
+              <div>
+                <p style={{ color: "#2e2e2e" }}>Room id should be more than 9 character</p>
+                <input type="text" placeholder="Enter Room id" value={this.state.roomid} onChange={this.roomidset} />
+                <button onClick={this.submitRoom} style={{ width: "100px" }}> submit </button>
+              </div>
+            </center>
+          )
+          :
+          (
+            <div style={{ backgroundColor: this.state.backgroundcolor }}>
+              Room id: {this.state.submitRoomid}
+              <div>
+                <div style={{ height: "5vh" }}>
+                  <center>
+                    <h2>
+                      Private Room
                                         </h2>
-                                    </center>
-                                </div>
+                  </center>
+                </div>
 
-                                <div id="cboard" className="chatboard" style={{ overflow: "auto", color: "green" }}>
+                <div id="cboard" className="chatboard" style={{ overflow: "auto", color: "black" }}>
+                  {this.state.allData.map(ids => (
+                    <div className="container" key={ids._id}>
+                      {ids.name}: {ids.message}
+                    </div>
+                  ))}
+                  {this.state.value.map(ids => (
+                    <div className="container" key={ids._id}>
+                      {ids.name}: {ids.message}
+                    </div>
+                  ))}
+                </div>
 
-                                    {this.state.allData.map(newid => (
-                                        <div key={newid._id} style={{ fontSize: "20px" }}>
-                                            {newid.name}>> {newid.message}
-                                        </div>
-                                    ))}
+                <SockJsClient url='https://server-chatforum.herokuapp.com/websocket-chat/'
+                  topics={['/topic/private']}
+                  onConnect={() => {
+                    console.log("connected");
+                  }}
+                  onDisconnect={() => {
+                    console.log("Disconnected");
+                  }}
+                  onMessage={(msg) => {
+                    if (msg.roomid === this.state.roomid) {
+                      console.log(msg)
+                      this.setState({ value: this.state.value.concat(msg) });
+                      var obj = document.getElementById("cboard");
+                      obj.scrollTop = obj.scrollHeight;
+                    }
+                  }}
+                  ref={(client) => {
+                    this.clientRef = client
+                  }} />
 
-                                    {this.state.value.map(ids => (
-                                        <div key={ids._id} style={{ fontSize: "20px" }}>
-                                            {ids.name}>> {ids.message}
-                                        </div>
-                                    ))}
-                                </div>
 
-                                <div style={{ position: "fixed", bottom: "0", width: "100%", backgroundColor: this.state.backgroundcolor }} onSubmit={() => this.submit()}>
-                                    <input style={{ width: "15vw" }} autoFocus="true" type="text" placeholder="name" name="name" value={this.state.name} onChange={this.handleChange} />
-                                    <input style={{ width: "55vw" }} autoFocus="true" onKeyDown={this._handleKeyDown} type="text" placeholder="message" name="message" value={this.state.message} onChange={this.handleChange} />
-                                    <button type="submit" onClick={() => this.submit()}>
-                                        Submit
-                                    </button>
-                                </div>
+                <div style={{ height: "20vh" }}>
+                  <table style={{ position: "fixed", bottom: "0" }}>
+                    <tbody>
+                      <tr>
+                        <td style={{ width: "15vw" }}>
+                          <input id="inputbox" autoFocus="true" type="text" placeholder="name" name="name" value={this.state.name} onChange={this.handleChange} />
+                        </td>
+                        <td style={{ width: "70vw" }}>
+                          <input id="inputbox" autoFocus="true" onKeyDown={this._handleKeyDown} type="text" placeholder="message" name="message" value={this.state.message} onChange={this.handleChange} />
+                        </td>
+                        <td>
+                          <button className="buttons button1 submit" type="submit" onClick={() => this.submit()}>
+                            Submit
+                                                    </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
 
-                            </div>
-                        </div>
-                    )
-                }
+              </div>
             </div>
-        );
-    }
-
-    DarkMode = () =>{
-        this.setState({backgroundcolor:"#2e2e2e"});
-    }
+          )
+        }
+      </div>
+    );
+  }
 }
 
 export default createroom

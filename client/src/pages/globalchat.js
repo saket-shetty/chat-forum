@@ -1,15 +1,18 @@
 import React from 'react';
-import socketIOClient from 'socket.io-client';
 import axios from 'axios';
 import '../FormStyle.css';
+import SockJsClient from 'react-stomp';
+
+let url = "https://server-chatforum.herokuapp.com/";
 
 class globalchat extends React.Component {
+
 
   constructor(props) {
     super(props);
     this.state = {
       value: [],
-      allData: [],
+      allData:[],
       name: "",
       message: "",
       backgroundcolor: "#ffffff",
@@ -21,13 +24,11 @@ class globalchat extends React.Component {
   }
 
   getData = () => {
-    console.log("gatData");
-    axios.get('https://chatforum-server.herokuapp.com/api/allData')
+    axios.get(url+'api/global/')
       .then(res => {
         var data = res.data;
-        this.setState({ allData: data['data'] });
-        this.setState({ allData: this.state.allData.reverse() });
-
+        console.log(data)
+        this.setState({ allData: data['Data'] });
         var obj = document.getElementById("cboard");
         obj.scrollTop = obj.scrollHeight;
       })
@@ -35,84 +36,88 @@ class globalchat extends React.Component {
 
   componentDidMount() {
     this.getData();
-    const socket = socketIOClient("wss://chatforum-server.herokuapp.com");
-    socket.on('message', (msg) => {
-      console.log(msg);
-      this.setState({ value: this.state.value.concat(msg) });
-      var obj = document.getElementById("cboard");
-      obj.scrollTop = obj.scrollHeight;
-    });
   }
 
-  submit = () => {
-    if (this.state.name === "") {
-      console.log("code here");
-      const response = axios.post('https://chatforum-server.herokuapp.com/api/postData', {
-        name: "anon",
-        message: this.state.message,
-      })
-    }
-    else {
-      const response = axios.post('https://chatforum-server.herokuapp.com/api/postData', {
-        name: this.state.name,
-        message: this.state.message,
-      })
-    }
-    this.setState({ message: "" });
-  }
+  sendMessage = () => {
+      this.clientRef.sendMessage('/app/user-all', JSON.stringify({
+          name: this.state.name === "" ? "anon" : this.state.name,
+          message: this.state.message
+      }));
+      axios.post(url+'api/global/',{
+          roomid:"Global",
+          Data:[
+            {
+              name: this.state.name === "" ? "anon" : this.state.name,
+              message: this.state.message,
+            }
+          ]
+      });
+      this.setState({ message: "" });
+  };
 
   _handleKeyDown = (e) => {
     if (e.key === 'Enter') {
-      this.submit();
+      this.sendMessage();
     }
   }
 
   render() {
     return (
-      <div style={{ backgroundColor: this.state.backgroundcolor}}>
-
-        <label className="switch">
-          <input type="checkbox" style={{ backgroundColor: "#2e2e2e" }} onClick={() => this.DarkMode()}></input>
-          <span className="slider round"></span>
-        </label>
-
-        <div style={{ height: "5vh" }}>
-          <center>
-            <h2>
-              Global Chat
-            </h2>
-          </center>
-        </div>
-
-        <div id="cboard" className="chatboard" style={{ overflow: "auto", color: "green" }}>
-
-          {this.state.allData.map(newid => (
-            <div key={newid._id} style={{ fontSize: "20px" }}>
-              {newid.name}>> {newid.message}
-            </div>
-          ))}
-
+      <div>
+        <div id="cboard" className="chatboard" style={{ overflow: "auto", color: "black" }}>
+          {this.state.allData.map(ids => (
+              <div className="container" key={ids._id}>
+                {ids.name}: {ids.message}
+              </div>
+            ))}
           {this.state.value.map(ids => (
-            <div key={ids._id} style={{ fontSize: "20px" }}>
-              {ids.name}>> {ids.message}
+            <div className="container" key={ids._id}>
+              {ids.name}: {ids.message}
             </div>
           ))}
         </div>
 
-        <div style={{ position: "fixed", bottom: "0", backgroundColor:this.state.backgroundcolor, width:"100%" }} onSubmit={() => this.submit()}>
-          <input style={{ width: "15vw" }} autoFocus="true" type="text" placeholder="name" name="name" value={this.state.name} onChange={this.handleChange} />
-          <input style={{ width: "60vw" }} autoFocus="true" onKeyDown={this._handleKeyDown} type="text" placeholder="message" name="message" value={this.state.message} onChange={this.handleChange} />
-          <button type="submit" onClick={() => this.submit()}>
-            Submit
-          </button>
+
+        <SockJsClient url='https://server-chatforum.herokuapp.com/websocket-chat/'
+          topics={['/topic/user']}
+          onConnect={() => {
+              console.log("connected");
+          }}
+          onDisconnect={() => {
+              console.log("Disconnected");
+          }}
+          onMessage={(msg) => {
+              this.setState({ value: this.state.value.concat(msg) });
+              var obj = document.getElementById("cboard");
+              obj.scrollTop = obj.scrollHeight;
+          }}
+          ref={(client) => {
+              this.clientRef = client
+          }}/>
+
+
+        <div style={{ height: "20vh" }}>
+          <table style={{ position: "fixed", bottom: "0" }}>
+            <tbody>
+              <tr>
+                <td style={{ width: "15vw" }}>
+                  <input id="inputbox" autoFocus="true" type="text" placeholder="name" name="name" value={this.state.name} onChange={this.handleChange} />
+                </td>
+                <td style={{ width: "70vw" }}>
+                  <input id="inputbox" autoFocus="true" onKeyDown={this._handleKeyDown} type="text" placeholder="message" name="message" value={this.state.message} onChange={this.handleChange} />
+                </td>
+                <td>
+                  <button className="buttons button1 submit" type="submit" onClick={this.sendMessage}>
+                    Submit
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
       </div>
     );
-  }
-
-  DarkMode = () => {
-    this.setState({ backgroundcolor: "#2e2e2e" });
   }
 }
 

@@ -5,7 +5,6 @@ import CreateRoom from './pages/createroom';
 import {
   BrowserRouter as Router,
   Route,
-  Redirect,
   Switch
 } from "react-router-dom";
 
@@ -21,7 +20,6 @@ class App extends React.Component {
           </Switch>
         </Router>
       </div>
-
     );
   }
 }
