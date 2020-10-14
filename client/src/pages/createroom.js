@@ -38,9 +38,11 @@ class createroom extends React.Component {
     axios.get(url)
       .then(res => {
         var data = res.data;
-        this.setState({
-          allData: data['data'][this.state.roomid]
-        })
+        if (data['data'][this.state.roomid] !== undefined) {
+          this.setState({
+            allData: data['data'][this.state.roomid]
+          })
+        }
         var obj = document.getElementById("cboard");
         obj.scrollTop = obj.scrollHeight;
       })
@@ -89,7 +91,7 @@ class createroom extends React.Component {
                   <center>
                     <h2>
                       Private Room
-                                        </h2>
+                    </h2>
                   </center>
                 </div>
 
@@ -116,7 +118,6 @@ class createroom extends React.Component {
                   }}
                   onMessage={(msg) => {
                     if (msg.roomid === this.state.roomid) {
-                      console.log(msg)
                       this.setState({ value: this.state.value.concat(msg) });
                       var obj = document.getElementById("cboard");
                       obj.scrollTop = obj.scrollHeight;
@@ -140,7 +141,7 @@ class createroom extends React.Component {
                         <td>
                           <button className="buttons button1 submit" type="submit" onClick={() => this.submit()}>
                             Submit
-                                                    </button>
+                          </button>
                         </td>
                       </tr>
                     </tbody>
